@@ -12,26 +12,24 @@ pipeline {
         
         // REMOVE THE OLD 'Security Analysis' STAGE COMPLETELY
         
-stage('Docker Build & Deploy') {
-    steps {
-        sh '''
-            # Create the file if it doesn't exist (no sudo needed for workspace files)
-            # We point to the local workspace file instead of /home/ubuntu to avoid permission walls
-            touch app_access.log
-            chmod 666 app_access.log
-            
-            # Stop and remove old container
-            docker stop app || true && docker rm app || true
-            
-            # Build and Run
-            docker build -t security-app .
-            docker run -d --name app \
-              -p 8000:8000 \
-              -v $(pwd)/app_access.log:/app/app_access.log \
-              -e ANTHROPIC_API_KEY=${CLAUDE_API_KEY} \
-              -e PYTHONUNBUFFERED=1 \
-              security-app
-        '''
+stages {
+        stage('Docker Build & Deploy') {
+            steps {
+                sh '''
+                    # Clean up existing container
+                    docker stop app || true && docker rm app || true
+                    
+                    # Build and Run
+                    docker build -t security-app .
+                    docker run -d --name app \
+                      -p 8000:8000 \
+                      -v /var/lib/jenkins/workspace/Claude-Sentinel/app_access.log:/app/app_access.log \
+                      -e ANTHROPIC_API_KEY=${CLAUDE_API_KEY} \
+                      -e PYTHONUNBUFFERED=1 \
+                      security-app
+                '''
+            }
+        }
     }
 }
         
