@@ -17,17 +17,17 @@ pipeline {
         }
 
         stage('Security Analysis') {
-            steps {
-                echo 'Running AI Sentinel...'
-                // Using JENKINS_NODE_COOKIE=dontKillMe prevents Jenkins from killing
-                // the background process when the stage finishes.
-                sh '''
-                    export ANTHROPIC_API_KEY=${CLAUDE_API_KEY}
-                    export JENKINS_NODE_COOKIE=dontKillMe
-                    nohup ./venv/bin/python3 security_sentinel.py > sentinel.log 2>&1 &
-                '''
-            }
-        }
+    steps {
+        echo 'Stopping old sentinel and starting new one...'
+        sh '''
+            # Kill the old process if it exists so we don't have 10 sentinels running
+            pkill -f security_sentinel.py || true
+            export ANTHROPIC_API_KEY=${CLAUDE_API_KEY}
+            export JENKINS_NODE_COOKIE=dontKillMe
+            nohup ./venv/bin/python3 security_sentinel.py > sentinel.log 2>&1 &
+        '''
+    }
+}
 
        stage('Docker Build & Deploy') {
             steps {
