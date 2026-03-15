@@ -22,11 +22,11 @@ pipeline {
                     docker build -t security-app .
                     docker stop app || true && docker rm app || true
                     
-                    # Run the container
                     docker run -d --name app \
-                      -p 8000:8000 \
-                      -e ANTHROPIC_API_KEY=${CLAUDE_API_KEY} \
-                      security-app
+                    -p 8000:8000 \
+                    -v /var/lib/jenkins/workspace/Claude-Sentinel/app_access.log:/app/app_access.log \
+                    -e ANTHROPIC_API_KEY=${CLAUDE_API_KEY} \
+                    security-app
                 '''
             }
         }
