@@ -1,6 +1,7 @@
 import os
 import re
 import time
+import subprocess
 from anthropic import Anthropic
 from prometheus_client import start_http_server, Gauge
 
@@ -52,14 +53,19 @@ def analyze_log(log_line):
         return 1.0
 
 if __name__ == "__main__":
-    # Start Prometheus exporter on port 8000
     start_http_server(8000)
-    print("Sentinel is watching... Metrics at http://localhost:8000")
+    
+    # Path to the log file you want to monitor
+    log_file_path = "app_access.log" 
 
-    test_log = '192.168.1.1 - - [14/Mar/2026:12:00:01] "GET /search?id=1; SELECT * FROM users HTTP/1.1" 200'
+    # 'tail -f' follows the file in real-time
+    process = subprocess.Popen(['tail', '-f', log_file_path], 
+                               stdout=subprocess.PIPE, 
+                               stderr=subprocess.PIPE, 
+                               text=True)
 
-    while True:
-        risk_score = analyze_log(test_log)
-        SECURITY_SCORE.labels(log_source='web_access').set(risk_score)
-        print(f"Log Analyzed. Risk Score: {risk_score}")
-        time.sleep(10) # Wait 10 seconds so you don't burn through API credits
+    for line in process.stdout:
+        if line.strip():
+            risk_score = analyze_log(line)
+            SECURITY_SCORE.labels(log_source='live_stream').set(risk_score)
+            print(f"New Log Detected! Risk Score: {risk_score}")
