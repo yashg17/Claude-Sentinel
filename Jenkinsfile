@@ -12,11 +12,18 @@ pipeline {
         
         // REMOVE THE OLD 'Security Analysis' STAGE COMPLETELY
         
- stage('Docker Build & Deploy') {
+stage('Docker Build & Deploy') {
     steps {
         sh '''
+            # 1. Fix permissions so Jenkins can touch/read the file
+            sudo touch /home/ubuntu/Claude-Sentinel/app_access.log
+            sudo chmod 666 /home/ubuntu/Claude-Sentinel/app_access.log
+            
+            # 2. Cleanup and Build
             docker stop app || true && docker rm app || true
             docker build -t security-app .
+            
+            # 3. Run Container
             docker run -d --name app \
               -p 8000:8000 \
               -v /home/ubuntu/Claude-Sentinel/app_access.log:/app/app_access.log \
