@@ -24,7 +24,7 @@ def analyze_log(log_line):
             return 0.0
 
         message = client.messages.create(
-            model="claude-4-5-sonnet-latest", # Migrated to Claude 4.5
+            model="claude-sonnet-4-6", # Updated to the March 2026 Standard
             max_tokens=50,
             system=SYSTEM_PROMPT,
             messages=[{"role": "user", "content": f"Analyze: {log_line}"}]
@@ -34,8 +34,8 @@ def analyze_log(log_line):
         return float(match.group(1)) if match else 1.0
     except Exception as e:
         print(f"API Error: {e}")
-        # Return 0.1 instead of 0.0 so you see a tiny "heartbeat" on
-        # Grafana to know the script is running but the API is failing.
+        # Return 0.1 so your Grafana line shows a tiny "heartbeat"
+        # to prove the script is alive even if the API fails.
         return 0.1
 
 if __name__ == "__main__":
