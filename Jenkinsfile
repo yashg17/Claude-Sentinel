@@ -15,18 +15,19 @@ pipeline {
 stage('Docker Build & Deploy') {
     steps {
         sh '''
-            # 1. Fix permissions so Jenkins can touch/read the file
-            sudo touch /home/ubuntu/Claude-Sentinel/app_access.log
-            sudo chmod 666 /home/ubuntu/Claude-Sentinel/app_access.log
+            # Create the file if it doesn't exist (no sudo needed for workspace files)
+            # We point to the local workspace file instead of /home/ubuntu to avoid permission walls
+            touch app_access.log
+            chmod 666 app_access.log
             
-            # 2. Cleanup and Build
+            # Stop and remove old container
             docker stop app || true && docker rm app || true
-            docker build -t security-app .
             
-            # 3. Run Container
+            # Build and Run
+            docker build -t security-app .
             docker run -d --name app \
               -p 8000:8000 \
-              -v /home/ubuntu/Claude-Sentinel/app_access.log:/app/app_access.log \
+              -v $(pwd)/app_access.log:/app/app_access.log \
               -e ANTHROPIC_API_KEY=${CLAUDE_API_KEY} \
               -e PYTHONUNBUFFERED=1 \
               security-app
