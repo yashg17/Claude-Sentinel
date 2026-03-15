@@ -1,7 +1,7 @@
 pipeline {
     agent any
     environment {
-        CLAUDE_API_KEY = credentials('CLAUDE_KEY') 
+        CLAUDE_API_KEY = credentials('CLAUDE_API_KEY') 
     }
     stages {
         stage('Setup Environment') {
