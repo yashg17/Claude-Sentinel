@@ -4,6 +4,8 @@ import time
 from anthropic import Anthropic
 from prometheus_client import start_http_server, Gauge
 
+# Trigger Test
+
 # 1. Prometheus Metric Setup
 SECURITY_SCORE = Gauge('log_security_score', 'Security risk score of the latest log line', ['log_source'])
 
