@@ -22,10 +22,12 @@ pipeline {
             docker stop app || true && docker rm app || true
             
             # Map the HOST log file into the CONTAINER log file path
-            docker run -d --name app \
+           docker run -d --name app \
               -p 8000:8000 \
               -v ${WORKSPACE}/app_access.log:/app/app_access.log \
               -e ANTHROPIC_API_KEY=${CLAUDE_API_KEY} \
+              -e PYTHONUNBUFFERED=1 \
+              --restart always \
               security-app
         '''
     }
