@@ -12,19 +12,16 @@ pipeline {
         
         // REMOVE THE OLD 'Security Analysis' STAGE COMPLETELY
         
-      stage('Docker Build & Deploy') {
+    stage('Docker Build & Deploy') {
     steps {
         sh '''
-            # 1. Create the log file on the host if it doesn't exist
+            # Ensure the log file exists so the container doesn't crash on start
             touch ${WORKSPACE}/app_access.log
             
-            # 2. Build the image
             docker build -t security-app .
-            
-            # 3. Stop/Remove old container
             docker stop app || true && docker rm app || true
             
-            # 4. Run with VOLUME MOUNT and PORT MAPPING
+            # Map the HOST log file into the CONTAINER log file path
             docker run -d --name app \
               -p 8000:8000 \
               -v ${WORKSPACE}/app_access.log:/app/app_access.log \
