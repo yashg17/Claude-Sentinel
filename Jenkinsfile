@@ -2,7 +2,6 @@ pipeline {
     agent any
     
     environment {
-        // Ensure this ID matches the ID you gave the credential in Jenkins
         CLAUDE_API_KEY = credentials('CLAUDE_KEY') 
     }
 
@@ -20,10 +19,11 @@ pipeline {
         stage('Security Analysis') {
             steps {
                 echo 'Running AI Sentinel...'
-                // Running the script using the python inside the venv
-                // We use & to run it in the background so the pipeline can finish
+                // Using JENKINS_NODE_COOKIE=dontKillMe prevents Jenkins from killing
+                // the background process when the stage finishes.
                 sh '''
                     export ANTHROPIC_API_KEY=${CLAUDE_API_KEY}
+                    export JENKINS_NODE_COOKIE=dontKillMe
                     nohup ./venv/bin/python3 security_sentinel.py > sentinel.log 2>&1 &
                 '''
             }
@@ -40,9 +40,28 @@ pipeline {
                 '''
             }
         }
+
+        stage('Cleanup') {
+            steps {
+                echo 'Cleaning up dangling Docker images and temporary files...'
+                sh '''
+                    # Remove unused Docker images to save disk space
+                    docker image prune -f
+                    
+                    # Optional: Remove the virtual environment if you want a fresh start next time
+                    # rm -rf venv
+                '''
+            }
+        }
     }
     
     post {
+        success {
+            echo 'Deployment successful!'
+        }
+        failure {
+            echo 'Pipeline failed. Checking logs...'
+        }
         always {
             echo 'Pipeline execution finished.'
         }
