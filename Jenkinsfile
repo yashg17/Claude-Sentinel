@@ -29,14 +29,17 @@ pipeline {
             }
         }
 
-        stage('Docker Build & Deploy') {
+       stage('Docker Build & Deploy') {
             steps {
                 echo 'Packaging application...'
                 sh '''
                     docker build -t security-app .
-                    docker stop app || true
-                    docker rm app || true
-                    docker run -d --name app -p 5000:5000 security-app
+                    docker stop app || true && docker rm app || true
+                    # Pass the API key into the container
+                    docker run -d --name app \
+                      -p 8000:8000 \
+                      -e ANTHROPIC_API_KEY=${CLAUDE_API_KEY} \
+                      security-app
                 '''
             }
         }
